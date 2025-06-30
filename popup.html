@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🕐 Work Logger</h1>
+      <div class="date" id="currentDate"></div>
+    </header>
+
+    <div id="setupNeeded" class="setup-notice" style="display: none;">
+      <p>⚠️ JIRA credentials not configured</p>
+      <button id="openSettings">Open Settings</button>
+    </div>
+
+    <div id="loadingSection" class="loading" style="display: none;">
+      <p>📋 Fetching your tickets...</p>
+    </div>
+
+    <div id="ticketsSection" style="display: none;">
+      <h3>Today's Tickets</h3>
+      <div id="ticketsList"></div>
+      
+      <div class="total-hours">
+        <label>Total Hours for Today:</label>
+        <input type="number" id="totalHours" value="6" min="0" max="12" step="0.5">
+      </div>
+
+      <div class="summary">
+        <h4>Time Allocation:</h4>
+        <div id="hoursBreakdown"></div>
+        <div class="remaining-hours">
+          Remaining: <span id="remainingHours">6.0</span> hours
+        </div>
+      </div>
+
+      <div class="actions">
+              <button id="resetBtn" class="secondary">Reset</button>
+      <button id="submitBtn" class="primary" disabled>Submit to JIRA</button>
+      </div>
+    </div>
+
+    <div id="successSection" style="display: none;">
+      <div class="success-message">
+        <h3>✅ Work Logged Successfully!</h3>
+        <p>Your time has been logged to JIRA.</p>
+        <button id="closeBtn">Close</button>
+      </div>
+    </div>
+
+    <div id="errorSection" style="display: none;">
+      <div class="error-message">
+        <h3>❌ Error</h3>
+        <p id="errorText"></p>
+        <button id="retryBtn">Retry</button>
+      </div>
+    </div>
+
+    <footer>
+      <button id="settingsBtn" class="link-btn">⚙️ Settings</button>
+      <button id="refreshBtn" class="link-btn">🔄 Refresh Tickets</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html> 

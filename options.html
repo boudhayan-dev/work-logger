@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Work Logger Settings</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container settings-container">
+    <header>
+      <h1>⚙️ Work Logger Settings</h1>
+    </header>
+
+    <div class="settings-section">
+      <h3>JIRA Configuration</h3>
+      <div class="form-group">
+        <label for="jiraUrl">JIRA URL:</label>
+        <input type="url" 
+               id="jiraUrl" 
+               placeholder="https://yourcompany.atlassian.net"
+               required>
+        <small>Your company's JIRA instance URL</small>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username/Email:</label>
+        <input type="email" 
+               id="username" 
+               placeholder="your.email@company.com"
+               required>
+        <small>Your JIRA login email</small>
+      </div>
+
+      <div class="form-group">
+        <label for="apiToken">API Token:</label>
+        <input type="password" 
+               id="apiToken" 
+               placeholder="Your JIRA API token"
+               required>
+        <small>
+          <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">
+            Generate API Token ↗
+          </a>
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="projectKey">Project Key:</label>
+        <input type="text" 
+               id="projectKey" 
+               placeholder="e.g., SCRUM, DEV, PROJ"
+               required>
+        <small>Your JIRA project key (e.g., SCRUM for SCRUM-123 tickets)</small>
+      </div>
+
+      <button id="testConnection" class="secondary">Test Connection</button>
+      <button id="testNotification" class="secondary">Test Notification</button>
+      <div id="connectionStatus" class="status-message"></div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Notification Settings</h3>
+      <div class="form-group">
+        <label for="notificationTime">Daily Reminder Time:</label>
+        <input type="time" 
+               id="notificationTime" 
+               value="17:00">
+        <small>When to show the daily work log reminder</small>
+      </div>
+
+      <div class="form-group">
+        <label for="defaultHours">Default Daily Hours:</label>
+        <input type="number" 
+               id="defaultHours" 
+               value="6" 
+               min="1" 
+               max="12" 
+               step="0.5">
+        <small>Default number of hours to log per day</small>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="weekendsEnabled">
+          Enable weekend notifications
+        </label>
+        <small>Show reminders on Saturday and Sunday</small>
+      </div>
+
+      <div class="form-group">
+        <label for="autoDistribution">Auto-distribute daily hours:</label>
+        <select id="autoDistribution">
+          <option value="none">Don't distribute (all start at 0)</option>
+          <option value="all">Equally across all tickets</option>
+          <option value="activeWork">Only across Active Work tickets</option>
+        </select>
+        <small>How to initially distribute your daily hours across tickets</small>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Advanced Settings</h3>
+      <div class="form-group">
+        <label for="primaryStatuses">Primary Work Statuses:</label>
+        <input type="text" 
+               id="primaryStatuses" 
+               value=""
+               placeholder="e.g., In Progress,Development,Active">
+        <small>Tickets in these statuses will always be shown (comma-separated)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="otherStatuses">Other Statuses (show if active today):</label>
+        <input type="text" 
+               id="otherStatuses" 
+               value=""
+               placeholder="e.g., To Do,In Review,Testing,Blocked">
+        <small>Tickets in these statuses will be shown only if they had activity today</small>
+      </div>
+
+      <div class="form-group">
+        <label for="customJql">Custom JQL Query (Optional):</label>
+        <textarea id="customJql" 
+                  placeholder="Leave empty to use default query"
+                  rows="3"></textarea>
+        <small>Override the default ticket search query completely</small>
+      </div>
+
+      <div class="form-group">
+        <label for="worklogComment">Default Work Log Comment:</label>
+        <input type="text" 
+               id="worklogComment" 
+               value="Daily work log"
+               placeholder="Comment to add to work logs">
+        <small>Default comment for all work log entries</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="saveSettings" class="primary">Save Settings</button>
+      <button id="resetSettings" class="danger">Reset to Defaults</button>
+    </div>
+
+    <div id="saveStatus" class="status-message"></div>
+
+    <div class="info-section">
+      <h3>📋 Setup Instructions</h3>
+      <ol>
+        <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">Atlassian API Tokens</a></li>
+        <li>Click "Create API token"</li>
+        <li>Give it a label like "Work Logger"</li>
+        <li>Copy the generated token and paste it above</li>
+        <li>Enter your JIRA URL and email</li>
+        <li>Test the connection and save</li>
+      </ol>
+
+      <h3>🔒 Security</h3>
+      <p>Your credentials are stored securely using Chrome's encrypted storage system, similar to how saved passwords are protected.</p>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html> 
