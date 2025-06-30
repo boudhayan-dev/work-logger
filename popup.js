@@ -90,7 +90,7 @@ async function fetchJiraTickets(credentials) {
     // Build smart JQL based on status configuration
     const primaryStatuses = (settings.primaryStatuses || '').split(',').map(s => s.trim()).filter(s => s);
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayInJiraTimezone(); // Use consistent date calculation
     
     // Simple filtering: Current sprint + Primary statuses always + Any status if updated today
     jql = `assignee = currentUser() AND project = "${projectKey}" AND Sprint in openSprints() AND (
@@ -211,22 +211,45 @@ async function fetchJiraTickets(credentials) {
   });
 }
 
+// Helper function to get today's date in the same timezone as JIRA ticket updates
+function getTodayInJiraTimezone() {
+  // JIRA typically stores dates in local timezone, so use local date
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getStatusReason(ticket, settings) {
   const primaryStatuses = (settings.primaryStatuses || '').split(',').map(s => s.trim()).filter(s => s);
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayInJiraTimezone(); // Use consistent date calculation
   const ticketDate = ticket.updated ? ticket.updated.split('T')[0] : '';
   
+  // Temporary debug
+  console.log(`🔍 Status check for ${ticket.key}:`);
+  console.log(`  - Primary statuses:`, primaryStatuses);
+  console.log(`  - Ticket status: "${ticket.status}"`);
+  console.log(`  - Today: ${today}`);
+  console.log(`  - Ticket date: ${ticketDate}`);
+  console.log(`  - Matches primary?`, primaryStatuses.some(status => status.toLowerCase() === ticket.status.toLowerCase()));
+  console.log(`  - Updated today?`, ticketDate === today);
+  
   if (primaryStatuses.length > 0 && primaryStatuses.some(status => status.toLowerCase() === ticket.status.toLowerCase())) {
+    console.log(`  → Returning Active Work`);
     return '🔨 Active Work';
   } else if (ticketDate === today) {
+    console.log(`  → Returning Active Today`);
     return '📅 Active Today';
   } else if (ticket.fromFallback) {
     // This ticket came from the fallback query due to main query failure
     console.warn(`Ticket ${ticket.key} from fallback query - main query failed. Status: "${ticket.status}", Updated: ${ticket.updated}`);
+    console.log(`  → Returning Fallback Query`);
     return '🔄 Fallback Query';
   } else {
     // If it shows up but doesn't match either condition, it's a query logic issue
     console.warn(`Ticket ${ticket.key} with status "${ticket.status}" showing without today's activity. Updated: ${ticket.updated}`);
+    console.log(`  → Returning Check Logic`);
     return '⚠️ Check Logic';
   }
 }
@@ -489,8 +512,22 @@ async function autoDistributeHours() {
     chrome.storage.local.get(['defaultHours', 'autoDistribution', 'primaryStatuses'], resolve);
   });
   
-  const totalHours = settings.defaultHours || 6;
+  // Update the global totalHours variable instead of creating a local one
+  totalHours = settings.defaultHours || 6;
   const distributionMode = settings.autoDistribution || 'none';
+  
+  // Update the UI input field to match
+  const totalHoursInput = document.getElementById('totalHours');
+  if (totalHoursInput) {
+    totalHoursInput.value = totalHours;
+  }
+  
+  // Temporary debug
+  console.log(`🔧 Auto-distribution debug:`);
+  console.log(`  - Total hours from settings: ${totalHours}`);
+  console.log(`  - Global totalHours variable: ${totalHours}`);
+  console.log(`  - Distribution mode: ${distributionMode}`);
+  console.log(`  - Primary statuses: "${settings.primaryStatuses}"`);
   
   // Reset all hours first
   tickets.forEach(ticket => {
@@ -499,6 +536,7 @@ async function autoDistributeHours() {
   });
   
   if (distributionMode === 'none') {
+    console.log(`  → Distribution disabled, updating UI...`);
     updateInputsFromTickets();
     updateTotalHours();
     updateBreakdown();
@@ -508,29 +546,41 @@ async function autoDistributeHours() {
   let eligibleTickets = [];
   
   if (distributionMode === 'all') {
+    console.log(`  → Distributing to ALL tickets`);
     eligibleTickets = tickets;
   } else if (distributionMode === 'activeWork') {
     // Include both primary status tickets AND tickets updated today
     const primaryStatuses = (settings.primaryStatuses || '').split(',').map(s => s.trim()).filter(s => s);
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayInJiraTimezone(); // Use consistent date calculation
+    
+    console.log(`  → Checking for active work tickets...`);
+    console.log(`  → Primary statuses array:`, primaryStatuses);
+    console.log(`  → Today: ${today}`);
     
     eligibleTickets = tickets.filter(ticket => {
       const ticketDate = ticket.updated ? ticket.updated.split('T')[0] : '';
       const isPrimaryStatus = primaryStatuses.some(status => status.toLowerCase() === ticket.status.toLowerCase());
       const isActiveToday = ticketDate === today;
       
+      console.log(`    ${ticket.key}: status="${ticket.status}", date="${ticketDate}", isPrimary=${isPrimaryStatus}, isToday=${isActiveToday}`);
+      
       return isPrimaryStatus || isActiveToday;
     });
+    
+    console.log(`  → Found ${eligibleTickets.length} eligible tickets`);
   }
   
   if (eligibleTickets.length > 0) {
     const hoursPerTicket = totalHours / eligibleTickets.length;
+    console.log(`  → Distributing ${hoursPerTicket} hours to each ticket`);
     eligibleTickets.forEach(ticket => {
       ticket.hours = hoursPerTicket;
       ticket.percentage = (hoursPerTicket / totalHours) * 100;
+      console.log(`    ${ticket.key}: ${ticket.hours}h (${ticket.percentage}%)`);
     });
   }
   
+  console.log(`  → Updating UI...`);
   updateInputsFromTickets();
   updateTotalHours();
   updateBreakdown();
